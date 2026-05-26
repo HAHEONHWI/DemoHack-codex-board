@@ -211,22 +211,6 @@ async function callAdminFunction(action, payload) {
   return body;
 }
 
-async function createConfirmedUser(email, password) {
-  const response = await fetch(ADMIN_FUNCTION_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ action: "publicSignup", email, password }),
-  });
-
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(body.error || "회원가입에 실패했습니다.");
-  }
-  return body;
-}
-
 function resetEditor() {
   elements.postId.value = "";
   elements.postTitle.value = "";
@@ -268,19 +252,12 @@ elements.authForm.addEventListener("submit", async (event) => {
 
   const email = elements.authEmail.value.trim();
   const password = elements.authPassword.value;
-  let data;
-  let error;
+  const authCall =
+    state.authMode === "login"
+      ? supabaseClient.auth.signInWithPassword({ email, password })
+      : supabaseClient.auth.signUp({ email, password });
 
-  if (state.authMode === "signup") {
-    try {
-      await createConfirmedUser(email, password);
-    } catch (signupError) {
-      setMessage(elements.authMessage, signupError.message, true);
-      return;
-    }
-  }
-
-  ({ data, error } = await supabaseClient.auth.signInWithPassword({ email, password }));
+  const { data, error } = await authCall;
   if (error) {
     setMessage(elements.authMessage, error.message, true);
     return;
@@ -288,7 +265,7 @@ elements.authForm.addEventListener("submit", async (event) => {
 
   state.session = data.session;
   if (!state.session) {
-    setMessage(elements.authMessage, "로그인 세션을 만들지 못했습니다.", true);
+    setMessage(elements.authMessage, "Supabase Auth 설정에서 이메일 확인을 꺼주세요.");
     return;
   }
 

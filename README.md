@@ -15,7 +15,8 @@ Supabase 인증과 RLS를 사용하는 기본 게시판입니다.
 ## Supabase 설정
 
 1. Supabase 프로젝트를 만든 뒤 SQL Editor에서 `supabase/schema.sql`을 실행합니다.
-2. 첫 관리자 계정은 Supabase Dashboard의 Authentication에서 직접 만든 뒤, SQL Editor에서 아래처럼 role을 바꿉니다.
+2. Supabase Dashboard → Authentication → Providers → Email에서 Confirm email을 끕니다. 그래야 회원가입 직후 이메일 확인 없이 바로 로그인됩니다.
+3. 첫 관리자 계정은 Supabase Dashboard의 Authentication에서 직접 만든 뒤, SQL Editor에서 아래처럼 role을 바꿉니다.
 
 ```sql
 update public.profiles
@@ -23,7 +24,7 @@ set role = 'admin'
 where email = 'admin@example.com';
 ```
 
-3. `supabase/functions/admin-users/index.ts`를 Edge Function으로 배포합니다.
+4. `supabase/functions/admin-users/index.ts`를 Edge Function으로 배포합니다.
 
 ```bash
 npx supabase functions deploy admin-users
