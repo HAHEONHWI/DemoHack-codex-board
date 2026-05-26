@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 type AdminRequest =
+  | { action: "publicSignup"; email: string; password: string }
   | { action: "createUser"; email: string; password: string; role: "admin" | "user" }
   | { action: "deleteUser"; userId: string };
 
@@ -21,6 +22,22 @@ Deno.serve(async (req) => {
     const jwt = authHeader.replace("Bearer ", "");
 
     const admin = createClient(supabaseUrl, serviceRoleKey);
+    const body = (await req.json()) as AdminRequest;
+
+    if (body.action === "publicSignup") {
+      const { data, error } = await admin.auth.admin.createUser({
+        email: body.email,
+        password: body.password,
+        email_confirm: true,
+        user_metadata: { role: "user" },
+      });
+
+      if (error) return json({ error: error.message }, 400);
+
+      await admin.from("profiles").update({ role: "user" }).eq("id", data.user.id);
+      return json({ user: data.user });
+    }
+
     const userClient = createClient(supabaseUrl, serviceRoleKey, {
       global: { headers: { Authorization: `Bearer ${jwt}` } },
     });
@@ -39,8 +56,6 @@ Deno.serve(async (req) => {
     if (profileError || profile?.role !== "admin") {
       return json({ error: "Admin 권한이 필요합니다." }, 403);
     }
-
-    const body = (await req.json()) as AdminRequest;
 
     if (body.action === "createUser") {
       const { data, error } = await admin.auth.admin.createUser({

@@ -29,6 +29,8 @@ where email = 'admin@example.com';
 npx supabase functions deploy admin-users
 ```
 
+이 함수는 공개 회원가입을 이메일 확인 완료 상태로 만들기 위해 `verify_jwt = false`로 설정되어 있습니다. Admin 기능은 함수 내부에서 별도로 JWT와 `admin` role을 확인합니다.
+
 4. `app.js` 상단의 값을 프로젝트 값으로 교체합니다.
 
 ```js
