@@ -286,6 +286,7 @@ elements.authForm.addEventListener("submit", async (event) => {
     renderSession();
     switchView("posts");
     setMessage(elements.authMessage, "");
+    alert(state.authMode === "login" ? "로그인되었습니다." : "회원가입 및 로그인되었습니다.");
   } catch (error) {
     setMessage(elements.authMessage, `로그인 후 데이터 로딩 실패: ${error.message}`, true);
   }
