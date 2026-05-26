@@ -76,6 +76,19 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function renderMarkdown(value) {
+  if (!window.marked || !window.DOMPurify) {
+    return escapeHtml(value);
+  }
+
+  marked.setOptions({
+    breaks: true,
+    gfm: true,
+  });
+
+  return DOMPurify.sanitize(marked.parse(value));
+}
+
 function switchView(viewName) {
   $$(".nav-item").forEach((button) => {
     button.classList.toggle("active", button.dataset.view === viewName);
@@ -134,7 +147,7 @@ function renderPosts() {
                 : ""
             }
           </div>
-          <p>${escapeHtml(post.content)}</p>
+          <div class="markdown-body">${renderMarkdown(post.content)}</div>
         </article>
       `;
     })
@@ -191,9 +204,15 @@ async function loadProfiles() {
             <strong>${escapeHtml(profile.email)}</strong>
             <span class="role-badge">${escapeHtml(profile.role)}</span>
           </div>
-          <button class="icon-button danger-button" title="계정 삭제" data-delete-user="${profile.id}" ${isSelf ? "disabled" : ""}>
-            <i data-lucide="user-x"></i>
-          </button>
+          <div class="profile-actions">
+            <select class="role-select" data-role-user="${profile.id}" ${isSelf ? "disabled" : ""} aria-label="${escapeHtml(profile.email)} 역할 변경">
+              <option value="user" ${profile.role === "user" ? "selected" : ""}>User</option>
+              <option value="admin" ${profile.role === "admin" ? "selected" : ""}>Admin</option>
+            </select>
+            <button class="icon-button danger-button" title="계정 삭제" data-delete-user="${profile.id}" ${isSelf ? "disabled" : ""}>
+              <i data-lucide="user-x"></i>
+            </button>
+          </div>
         </div>
       `;
     })
@@ -392,6 +411,26 @@ elements.profilesList.addEventListener("click", async (event) => {
     await loadPosts();
   } catch (error) {
     setMessage(elements.adminMessage, error.message, true);
+  }
+});
+
+elements.profilesList.addEventListener("change", async (event) => {
+  const select = event.target.closest("[data-role-user]");
+  if (!select) return;
+
+  const userId = select.dataset.roleUser;
+  const nextRole = select.value;
+
+  try {
+    select.disabled = true;
+    setMessage(elements.adminMessage, "역할을 변경하는 중입니다.");
+    const { error } = await supabaseClient.from("profiles").update({ role: nextRole }).eq("id", userId);
+    if (error) throw error;
+    setMessage(elements.adminMessage, "역할을 변경했습니다.");
+    await loadProfiles();
+  } catch (error) {
+    setMessage(elements.adminMessage, error.message, true);
+    await loadProfiles();
   }
 });
 

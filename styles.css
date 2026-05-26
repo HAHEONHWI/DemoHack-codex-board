@@ -296,11 +296,76 @@ select:focus {
   font-size: 0.9rem;
 }
 
-.post-card p {
-  margin: 0;
+.markdown-body {
   color: #3f4b42;
   line-height: 1.65;
-  white-space: pre-wrap;
+}
+
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body blockquote,
+.markdown-body pre {
+  margin: 0;
+  margin-bottom: 12px;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin: 12px 0 8px;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.markdown-body h1 {
+  font-size: 1.35rem;
+}
+
+.markdown-body h2 {
+  font-size: 1.2rem;
+}
+
+.markdown-body h3 {
+  font-size: 1.05rem;
+}
+
+.markdown-body a {
+  color: var(--accent-strong);
+}
+
+.markdown-body code {
+  border-radius: 6px;
+  background: var(--surface-strong);
+  padding: 2px 5px;
+}
+
+.markdown-body pre {
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #202620;
+  color: #f6f7f3;
+  padding: 12px;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.markdown-body blockquote {
+  border-left: 3px solid var(--accent);
+  color: #3f4b42;
+  padding-left: 12px;
 }
 
 .button-row,
@@ -360,6 +425,13 @@ select:focus {
   padding: 0 10px;
   font-size: 0.82rem;
   text-transform: uppercase;
+}
+
+.role-select {
+  width: auto;
+  min-width: 96px;
+  min-height: 42px;
+  padding: 0 10px;
 }
 
 .form-message {
