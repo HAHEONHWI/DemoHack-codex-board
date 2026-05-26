@@ -49,6 +49,17 @@ function setMessage(node, message, isError = false) {
   node.classList.toggle("error", isError);
 }
 
+function getAuthErrorMessage(error) {
+  if (!error) return "인증 처리 중 오류가 발생했습니다.";
+  if (error.message === "Invalid login credentials") {
+    return "이메일 또는 비밀번호가 올바르지 않습니다. 처음이면 회원가입 탭을 눌러 가입해 주세요.";
+  }
+  if (error.message === "Email not confirmed") {
+    return "Supabase Auth 설정에서 이메일 확인을 꺼주세요.";
+  }
+  return error.message;
+}
+
 function formatDate(value) {
   return new Intl.DateTimeFormat("ko-KR", {
     dateStyle: "medium",
@@ -250,30 +261,34 @@ elements.authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   setMessage(elements.authMessage, "처리 중입니다.");
 
-  const email = elements.authEmail.value.trim();
-  const password = elements.authPassword.value;
-  const authCall =
-    state.authMode === "login"
-      ? supabaseClient.auth.signInWithPassword({ email, password })
-      : supabaseClient.auth.signUp({ email, password });
+  try {
+    const email = elements.authEmail.value.trim();
+    const password = elements.authPassword.value;
+    const authCall =
+      state.authMode === "login"
+        ? supabaseClient.auth.signInWithPassword({ email, password })
+        : supabaseClient.auth.signUp({ email, password });
 
-  const { data, error } = await authCall;
-  if (error) {
-    setMessage(elements.authMessage, error.message, true);
-    return;
+    const { data, error } = await authCall;
+    if (error) {
+      setMessage(elements.authMessage, getAuthErrorMessage(error), true);
+      return;
+    }
+
+    state.session = data.session;
+    if (!state.session) {
+      setMessage(elements.authMessage, "Supabase Auth 설정에서 이메일 확인을 꺼주세요.");
+      return;
+    }
+
+    await loadProfile();
+    await loadPosts();
+    renderSession();
+    switchView("posts");
+    setMessage(elements.authMessage, "");
+  } catch (error) {
+    setMessage(elements.authMessage, `로그인 후 데이터 로딩 실패: ${error.message}`, true);
   }
-
-  state.session = data.session;
-  if (!state.session) {
-    setMessage(elements.authMessage, "Supabase Auth 설정에서 이메일 확인을 꺼주세요.");
-    return;
-  }
-
-  await loadProfile();
-  await loadPosts();
-  renderSession();
-  switchView("posts");
-  setMessage(elements.authMessage, "");
 });
 
 elements.logoutButton.addEventListener("click", async () => {
