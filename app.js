@@ -397,13 +397,13 @@ elements.profilesList.addEventListener("click", async (event) => {
 
 elements.loadProfilesButton.addEventListener("click", loadProfiles);
 
-supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+supabaseClient.auth.onAuthStateChange((_event, session) => {
   state.session = session;
-  if (session) {
-    await loadProfile();
-    await loadPosts();
+  if (!session) {
+    state.profile = null;
+    state.posts = [];
+    renderSession();
   }
-  renderSession();
 });
 
 bootstrap().catch((error) => {
