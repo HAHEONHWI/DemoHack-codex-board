@@ -100,3 +100,26 @@ create policy "Users can delete own posts"
 on public.posts for delete
 to authenticated
 using (author_id = auth.uid());
+
+create or replace function public.admin_delete_user(target_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Admin 권한이 필요합니다.';
+  end if;
+
+  if target_user_id = auth.uid() then
+    raise exception '자기 자신은 삭제할 수 없습니다.';
+  end if;
+
+  delete from auth.users
+  where id = target_user_id;
+end;
+$$;
+
+revoke all on function public.admin_delete_user(uuid) from public;
+grant execute on function public.admin_delete_user(uuid) to authenticated;

@@ -406,7 +406,8 @@ elements.profilesList.addEventListener("click", async (event) => {
 
   try {
     setMessage(elements.adminMessage, "계정을 삭제하는 중입니다.");
-    await callAdminFunction("deleteUser", { userId: button.dataset.deleteUser });
+    const { error } = await supabaseClient.rpc("admin_delete_user", { target_user_id: button.dataset.deleteUser });
+    if (error) throw error;
     await loadProfiles();
     await loadPosts();
   } catch (error) {
